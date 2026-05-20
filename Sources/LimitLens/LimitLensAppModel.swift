@@ -77,6 +77,7 @@ final class LimitLensAppModel: ObservableObject {
 
     func finishOnboarding() {
         setupMessage = nil
+        configuration.markOnboardingCompleted()
         persistAndRebuild()
     }
 

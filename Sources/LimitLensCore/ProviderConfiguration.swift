@@ -36,6 +36,12 @@ public struct ProviderConfiguration: Codable, Equatable, Sendable {
     public static let storageKey = "LimitLens.ProviderConfiguration.v1"
 
     public private(set) var providers: [CLIUsageSource: ProviderSettings]
+    public private(set) var hasCompletedOnboarding: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case providers
+        case hasCompletedOnboarding
+    }
 
     public static var defaultEnabled: ProviderConfiguration {
         ProviderConfiguration(providers: [
@@ -44,8 +50,27 @@ public struct ProviderConfiguration: Codable, Equatable, Sendable {
         ])
     }
 
-    public init(providers: [CLIUsageSource: ProviderSettings]) {
+    public init(
+        providers: [CLIUsageSource: ProviderSettings],
+        hasCompletedOnboarding: Bool = false
+    ) {
         self.providers = providers
+        self.hasCompletedOnboarding = hasCompletedOnboarding
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.providers = try container.decode([CLIUsageSource: ProviderSettings].self, forKey: .providers)
+        self.hasCompletedOnboarding = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .hasCompletedOnboarding
+        ) ?? false
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(providers, forKey: .providers)
+        try container.encode(hasCompletedOnboarding, forKey: .hasCompletedOnboarding)
     }
 
     public var activeSources: [CLIUsageSource] {
@@ -53,7 +78,10 @@ public struct ProviderConfiguration: Codable, Equatable, Sendable {
     }
 
     public var requiresOnboarding: Bool {
-        activeSources.contains { setupState(for: $0) == .needsSetup }
+        guard !hasCompletedOnboarding else {
+            return false
+        }
+        return activeSources.contains { setupState(for: $0) == .needsSetup }
     }
 
     public mutating func setMode(_ mode: ProviderMode, for source: CLIUsageSource) {
@@ -78,6 +106,10 @@ public struct ProviderConfiguration: Codable, Equatable, Sendable {
         var settings = providers[.claudeCode] ?? ProviderSettings()
         settings.claudeCredentialImported = imported
         providers[.claudeCode] = settings
+    }
+
+    public mutating func markOnboardingCompleted() {
+        hasCompletedOnboarding = true
     }
 
     public func setupState(for source: CLIUsageSource) -> ProviderSetupState {

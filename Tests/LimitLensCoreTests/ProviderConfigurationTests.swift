@@ -46,4 +46,40 @@ final class ProviderConfigurationTests: XCTestCase {
 
         XCTAssertFalse(configuration.requiresOnboarding)
     }
+
+    func testFinishingOnboardingAllowsDashboardWithProvidersStillNeedingSetup() {
+        var configuration = ProviderConfiguration.defaultEnabled
+
+        configuration.markOnboardingCompleted()
+
+        XCTAssertFalse(configuration.requiresOnboarding)
+        XCTAssertEqual(configuration.setupState(for: .codex), .needsSetup)
+        XCTAssertEqual(configuration.setupState(for: .claudeCode), .needsSetup)
+    }
+
+    func testDecodesConfigurationSavedBeforeOnboardingCompletionFlag() throws {
+        let data = Data("""
+        {
+          "providers": [
+            "Codex",
+            {
+              "mode": "enabled",
+              "claudeExactEnabled": false,
+              "claudeCredentialImported": false
+            },
+            "Claude Code",
+            {
+              "mode": "enabled",
+              "claudeExactEnabled": false,
+              "claudeCredentialImported": false
+            }
+          ]
+        }
+        """.utf8)
+
+        let configuration = try JSONDecoder().decode(ProviderConfiguration.self, from: data)
+
+        XCTAssertFalse(configuration.hasCompletedOnboarding)
+        XCTAssertTrue(configuration.requiresOnboarding)
+    }
 }
