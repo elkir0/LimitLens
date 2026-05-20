@@ -182,12 +182,24 @@ struct OnboardingView: View {
 
     private func chooseFolder(source: CLIUsageSource, prompt: String) {
         do {
-            if let bookmark = try folderPicker.pickFolder(prompt: prompt) {
+            if let bookmark = try folderPicker.pickFolder(
+                prompt: prompt,
+                defaultURL: defaultFolder(for: source)
+            ) {
                 appModel.saveFolderBookmark(bookmark, for: source)
                 folderError = nil
             }
         } catch {
             folderError = String(localized: "setup.folder.failure")
+        }
+    }
+
+    private func defaultFolder(for source: CLIUsageSource) -> URL {
+        switch source {
+        case .codex:
+            FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex/sessions")
+        case .claudeCode:
+            FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude/projects")
         }
     }
 

@@ -68,8 +68,20 @@ public final class LocalUsageStore: ObservableObject {
     }
 
     private func readStableClaude(now: Date) async -> CLIUsageSnapshot {
-        if let claudeBackoffUntil, claudeBackoffUntil > now, let cachedClaudeExact {
-            return cachedClaude(cachedClaudeExact, reason: "Endpoint /usage Claude Code temporairement limité; dernier quota exact conservé.")
+        if let claudeBackoffUntil, claudeBackoffUntil > now {
+            if let cachedClaudeExact {
+                return cachedClaude(cachedClaudeExact, reason: "Endpoint /usage Claude Code temporairement limité; dernier quota exact conservé.")
+            }
+            if let local = await localClaudeFallback(
+                now: now,
+                reason: "Endpoint /usage Claude Code temporairement limité; estimation locale affichée."
+            ) {
+                return local
+            }
+            return .unavailable(
+                source: .claudeCode,
+                note: "Endpoint /usage Claude Code temporairement limité. Aucune donnée exacte en cache ni estimation locale disponible."
+            )
         }
 
         do {
@@ -98,9 +110,15 @@ public final class LocalUsageStore: ObservableObject {
                     reason: "Endpoint /usage Claude Code temporairement limité; dernier quota exact conservé."
                 )
             }
+            if let local = await localClaudeFallback(
+                now: now,
+                reason: "Endpoint /usage Claude Code temporairement limité; estimation locale affichée."
+            ) {
+                return local
+            }
             return .unavailable(
                 source: .claudeCode,
-                note: "Endpoint /usage Claude Code temporairement limité. Aucune donnée exacte en cache."
+                note: "Endpoint /usage Claude Code temporairement limité. Aucune donnée exacte en cache ni estimation locale disponible."
             )
         } catch ProviderClientError.missingKey {
             if let cachedClaudeExact {
@@ -155,6 +173,25 @@ public final class LocalUsageStore: ObservableObject {
             metrics: snapshot.metrics,
             lastUpdated: snapshot.lastUpdated,
             note: reason
+        )
+    }
+
+    private func localClaudeFallback(now: Date, reason: String) async -> CLIUsageSnapshot? {
+        guard let snapshot = await reader.readLocalClaude(now: now) else {
+            return nil
+        }
+        let note = [reason, snapshot.note]
+            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        return CLIUsageSnapshot(
+            source: snapshot.source,
+            health: snapshot.health,
+            summary: snapshot.summary,
+            limits: snapshot.limits,
+            metrics: snapshot.metrics,
+            lastUpdated: snapshot.lastUpdated,
+            note: note.isEmpty ? nil : note
         )
     }
 

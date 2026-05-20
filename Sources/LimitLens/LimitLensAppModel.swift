@@ -47,7 +47,7 @@ final class LimitLensAppModel: ObservableObject {
 
     func saveFolderBookmark(_ bookmark: Data, for source: CLIUsageSource) {
         configuration.setFolderBookmark(bookmark, for: source)
-        persistAndRebuild()
+        persistAndRebuild(refreshImmediately: true)
     }
 
     func importClaudeCredentials() async {
@@ -56,7 +56,7 @@ final class LimitLensAppModel: ObservableObject {
             configuration.setClaudeExactEnabled(true)
             configuration.setClaudeCredentialImported(true)
             setupMessage = String(localized: "setup.importClaude.success")
-            persistAndRebuild()
+            persistAndRebuild(refreshImmediately: true)
         } catch {
             configuration.setClaudeExactEnabled(true)
             configuration.setClaudeCredentialImported(false)
@@ -78,13 +78,19 @@ final class LimitLensAppModel: ObservableObject {
     func finishOnboarding() {
         setupMessage = nil
         configuration.markOnboardingCompleted()
-        persistAndRebuild()
+        persistAndRebuild(refreshImmediately: true)
     }
 
-    private func persistAndRebuild() {
+    private func persistAndRebuild(refreshImmediately: Bool = false) {
         do {
             try configurationStore.save(configuration)
             rebuildUsageStore()
+            if refreshImmediately {
+                let refreshedStore = usageStore
+                Task {
+                    await refreshedStore.refresh()
+                }
+            }
         } catch {
             setupMessage = String(localized: "setup.save.failure")
         }

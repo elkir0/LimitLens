@@ -129,7 +129,7 @@ final class LocalUsageStoreTests: XCTestCase {
     }
 
     @MainActor
-    func testRateLimitedClaudeWithoutExactCacheDoesNotUseLocalEstimateAsQuota() async throws {
+    func testRateLimitedClaudeWithoutExactCacheFallsBackToLocalEstimate() async throws {
         let home = try temporaryHome()
         let projects = home.appendingPathComponent(".claude/projects/project")
         try FileManager.default.createDirectory(at: projects, withIntermediateDirectories: true)
@@ -145,17 +145,54 @@ final class LocalUsageStoreTests: XCTestCase {
         ])
         let reader = LocalUsageReader(
             homeDirectory: home,
+            providerFolders: [.claudeCode: home.appendingPathComponent(".claude/projects")],
             claudeOAuthStore: StoreTestOAuthStore(token: "t"),
             claudeUsageFetcher: fetcher
         )
         let store = LocalUsageStore(reader: reader, userDefaults: isolatedDefaults())
 
-        await store.refresh(now: Date(timeIntervalSince1970: 1_700_000_000))
+        await store.refresh(now: ISO8601DateFormatter().date(from: "2026-05-17T20:00:00Z")!)
 
         let claude = store.snapshot(for: .claudeCode)
-        XCTAssertEqual(claude.health, .unavailable)
-        XCTAssertTrue(claude.limits.isEmpty)
-        XCTAssertTrue(claude.note?.contains("Aucune donnée exacte en cache") == true)
+        XCTAssertEqual(claude.health, .warning)
+        XCTAssertEqual(claude.summary, "Estimation locale")
+        XCTAssertEqual(claude.metrics.first { $0.id == "5h" }?.value, "2.7M tok")
+        XCTAssertTrue(claude.limits.allSatisfy { $0.usedPercent == nil })
+        XCTAssertTrue(claude.note?.contains("estimation locale") == true)
+    }
+
+    @MainActor
+    func testRefreshUsesLocalClaudeDuringRateLimitBackoffWithoutExactCache() async throws {
+        let home = try temporaryHome()
+        let projects = home.appendingPathComponent(".claude/projects/project")
+        try FileManager.default.createDirectory(at: projects, withIntermediateDirectories: true)
+        try """
+        {"timestamp":"2026-05-17T18:00:00.123Z","type":"assistant","message":{"model":"claude-sonnet-4-6","usage":{"input_tokens":100,"output_tokens":50,"cache_read_input_tokens":1000,"cache_creation_input_tokens":200}}}
+        """.write(
+            to: projects.appendingPathComponent("session.jsonl"),
+            atomically: true,
+            encoding: .utf8
+        )
+        let now = ISO8601DateFormatter().date(from: "2026-05-17T20:00:00Z")!
+        let defaults = isolatedDefaults()
+        defaults.set(now.addingTimeInterval(900).timeIntervalSince1970, forKey: "LimitLens.claudeBackoffUntil")
+        let fetcher = StoreTestUsageFetcher(results: [
+            .success(CLIUsageSnapshot.unavailable(source: .claudeCode, note: "Ne devrait pas être appelé."))
+        ])
+        let reader = LocalUsageReader(
+            homeDirectory: home,
+            providerFolders: [.claudeCode: home.appendingPathComponent(".claude/projects")],
+            claudeOAuthStore: StoreTestOAuthStore(token: "t"),
+            claudeUsageFetcher: fetcher
+        )
+        let store = LocalUsageStore(reader: reader, userDefaults: defaults)
+
+        await store.refresh(now: now)
+
+        let claude = store.snapshot(for: .claudeCode)
+        XCTAssertEqual(fetcher.callCount, 0)
+        XCTAssertEqual(claude.summary, "Estimation locale")
+        XCTAssertEqual(claude.metrics.first { $0.id == "5h" }?.value, "1.4K tok")
     }
 
     @MainActor
