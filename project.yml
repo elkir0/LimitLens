@@ -1,0 +1,70 @@
+name: LimitLens
+options:
+  bundleIdPrefix: com.limitlens
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  postGenCommand: bash Scripts/ensure-app-group-capability.sh
+packages:
+  LimitLensCore:
+    path: .
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "0.2.3"
+    CURRENT_PROJECT_VERSION: "4"
+schemes:
+  LimitLens:
+    build:
+      targets:
+        LimitLens: all
+    run:
+      config: Release
+    archive:
+      config: Release
+targets:
+  LimitLens:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/LimitLens
+    dependencies:
+      - package: LimitLensCore
+        product: LimitLensCore
+      - target: LimitLensWidgetExtension
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.limitlens.dashboard
+        PRODUCT_NAME: LimitLens
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
+        CODE_SIGN_ENTITLEMENTS: Sources/LimitLens/LimitLens.entitlements
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  LimitLensWidgetExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: Sources/LimitLensWidget
+    dependencies:
+      - package: LimitLensCore
+        product: LimitLensCore
+    info:
+      path: Sources/LimitLensWidget/Info.plist
+      properties:
+        CFBundleDisplayName: LimitLens
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.limitlens.dashboard.widget
+        PRODUCT_NAME: LimitLensWidgetExtension
+        CODE_SIGN_ENTITLEMENTS: Sources/LimitLensWidget/LimitLensWidget.entitlements
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_HARDENED_RUNTIME: YES

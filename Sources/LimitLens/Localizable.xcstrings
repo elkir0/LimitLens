@@ -1,0 +1,230 @@
+{
+  "sourceLanguage" : "fr",
+  "strings" : {
+    "app.name" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "LimitLens" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "LimitLens" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "LimitLens" } }
+      }
+    },
+    "dashboard.subtitle" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local reading + Claude Code OAuth" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Lectura local + OAuth de Claude Code" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Lecture locale + OAuth Claude Code" } }
+      }
+    },
+    "provider.claude.name" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Claude Code" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Claude Code" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Claude Code" } }
+      }
+    },
+    "provider.openai.name" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "OpenAI" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "OpenAI" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "OpenAI" } }
+      }
+    },
+    "settings.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Settings" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ajustes" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réglages" } }
+      }
+    },
+    "setup.chooseClaudeFolder" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose Claude folder" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elegir carpeta de Claude" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Choisir le dossier Claude" } }
+      }
+    },
+    "setup.chooseCodexFolder" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose Codex folder" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elegir carpeta de Codex" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Choisir le dossier Codex" } }
+      }
+    },
+    "setup.importClaude" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import from Claude Code" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Importar desde Claude Code" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Importer depuis Claude Code" } }
+      }
+    },
+    "setup.required" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Setup required" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Configuración requerida" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Configuration requise" } }
+      }
+    },
+    "setup.subtitle" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local quota monitoring for AI coding tools" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Seguimiento local de cuotas para herramientas IA de código" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Suivi local des quotas pour outils IA de code" } }
+      }
+    },
+    "setup.welcome.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose what LimitLens can read" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elige lo que LimitLens puede leer" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Choisissez ce que LimitLens peut lire" } }
+      }
+    },
+    "setup.welcome.body" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "LimitLens runs sandboxed. It needs your explicit permission for Codex and Claude Code folders. Widgets receive only a sanitized local snapshot." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "LimitLens se ejecuta en sandbox. Necesita tu permiso explícito para las carpetas de Codex y Claude Code. Los widgets solo reciben una instantánea local saneada." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "LimitLens fonctionne en sandbox. L'app a besoin de votre autorisation explicite pour les dossiers Codex et Claude Code. Les widgets reçoivent seulement un instantané local nettoyé." } }
+      }
+    },
+    "setup.back" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Back" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Atrás" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Retour" } }
+      }
+    },
+    "setup.next" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Next" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Siguiente" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Suivant" } }
+      }
+    },
+    "setup.finish" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Finish" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Finalizar" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Terminer" } }
+      }
+    },
+    "setup.choose" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elegir" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Choisir" } }
+      }
+    },
+    "setup.chooseFolder.confirm" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elegir" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Choisir" } }
+      }
+    },
+    "setup.importClaude.explanation" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Exact Claude usage is optional. LimitLens can import your existing Claude Code OAuth token into its own Keychain item and use it only for usage checks." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "El uso exacto de Claude es opcional. LimitLens puede importar tu token OAuth existente de Claude Code en su propio elemento del llavero y usarlo solo para consultar el uso." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "L'usage exact Claude est optionnel. LimitLens peut importer votre token OAuth Claude Code existant dans son propre élément Keychain et l'utiliser uniquement pour les lectures d'usage." } }
+      }
+    },
+    "setup.importClaude.success" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Claude Code credentials imported." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Credenciales de Claude Code importadas." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Identifiants Claude Code importés." } }
+      }
+    },
+    "setup.importClaude.failure" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Claude Code credentials could not be imported." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudieron importar las credenciales de Claude Code." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Impossible d'importer les identifiants Claude Code." } }
+      }
+    },
+    "setup.save.failure" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Settings could not be saved." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudieron guardar los ajustes." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Impossible d'enregistrer les réglages." } }
+      }
+    },
+    "setup.folder.failure" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Folder permission could not be saved." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudo guardar el permiso de carpeta." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Impossible d'enregistrer l'autorisation du dossier." } }
+      }
+    },
+    "setup.summary.body" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "You can change providers, folders, and Claude exact usage later from Settings." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Puedes cambiar proveedores, carpetas y el uso exacto de Claude más tarde desde Ajustes." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Vous pourrez modifier les fournisseurs, dossiers et l'usage exact Claude depuis les réglages." } }
+      }
+    },
+    "setup.state.disabled" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Disabled" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desactivado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Désactivé" } }
+      }
+    },
+    "setup.state.needsSetup" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Setup needed" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Falta configuración" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "À configurer" } }
+      }
+    },
+    "setup.state.active" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Active" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Activo" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Actif" } }
+      }
+    },
+    "setup.state.degraded" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Degraded" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Degradado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Dégradé" } }
+      }
+    },
+    "setup.state.error" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Error" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Error" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Erreur" } }
+      }
+    },
+    "settings.codex.detail" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Exact local status when Codex /status events are present." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Estado local exacto cuando existen eventos /status de Codex." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Statut local exact quand les événements /status Codex sont présents." } }
+      }
+    },
+    "settings.claude.detail" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local estimate plus optional exact Claude Code usage import." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Estimación local más importación opcional del uso exacto de Claude Code." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Estimation locale et import optionnel de l'usage exact Claude Code." } }
+      }
+    },
+    "settings.privacy.summary" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "LimitLens has no server. Folder access is explicitly granted by macOS and widgets read only a sanitized local snapshot." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "LimitLens no tiene servidor. macOS concede explícitamente el acceso a carpetas y los widgets solo leen una instantánea local saneada." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "LimitLens n'a pas de serveur. L'accès aux dossiers est accordé explicitement par macOS et les widgets lisent seulement un instantané local nettoyé." } }
+      }
+    },
+    "settings.resetProvider" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reset" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Restablecer" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réinitialiser" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

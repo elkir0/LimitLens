@@ -1,0 +1,41 @@
+{
+  "sourceLanguage" : "fr",
+  "strings" : {
+    "provider.claude.name" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Claude Code" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Claude Code" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Claude Code" } }
+      }
+    },
+    "provider.openai.name" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "OpenAI" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "OpenAI" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "OpenAI" } }
+      }
+    },
+    "widget.disabled" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Disabled" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desactivado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Désactivé" } }
+      }
+    },
+    "widget.openLimitLens" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open LimitLens" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir LimitLens" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrez LimitLens" } }
+      }
+    },
+    "widget.setupRequired" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Setup required" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Configuración requerida" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Configuration requise" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}
