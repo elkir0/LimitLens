@@ -6,7 +6,19 @@ final class ProjectSigningConfigurationTests: XCTestCase {
 
         XCTAssertEqual(entitlements["com.apple.security.app-sandbox"] as? Bool, true)
         XCTAssertEqual(entitlements["com.apple.security.files.user-selected.read-only"] as? Bool, true)
+        XCTAssertEqual(entitlements["com.apple.security.files.bookmarks.app-scope"] as? Bool, true)
         XCTAssertEqual(entitlements["com.apple.security.network.client"] as? Bool, true)
+    }
+
+    func testFolderPickerCanReachHiddenProviderDirectories() throws {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let picker = try String(
+            contentsOf: root.appendingPathComponent("Sources/LimitLens/FolderPermissionPicker.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(picker.contains("panel.showsHiddenFiles = true"))
+        XCTAssertTrue(picker.contains("defaultURL.deletingLastPathComponent()"))
     }
 
     func testMainAppCanWriteSanitizedApplicationSupportSnapshot() throws {

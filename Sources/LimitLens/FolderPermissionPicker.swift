@@ -16,8 +16,12 @@ struct FolderPermissionPicker {
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
         panel.canCreateDirectories = false
+        panel.showsHiddenFiles = true
         if let defaultURL, FileManager.default.fileExists(atPath: defaultURL.path) {
-            panel.directoryURL = defaultURL
+            let parentURL = defaultURL.deletingLastPathComponent()
+            panel.directoryURL = FileManager.default.fileExists(atPath: parentURL.path)
+                ? parentURL
+                : defaultURL
         }
         guard panel.runModal() == .OK, let url = panel.url else {
             return nil
