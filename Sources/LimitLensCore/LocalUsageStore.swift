@@ -75,6 +75,10 @@ public final class LocalUsageStore: ObservableObject {
     }
 
     private func readStableClaude(now: Date) async -> CLIUsageSnapshot {
+        if hasClaudeExactDelay(after: now), await reader.syncClaudeCredentials() {
+            clearClaudeExactDelays()
+        }
+
         if let claudeBackoffUntil, claudeBackoffUntil > now {
             if let cachedClaudeExact {
                 return cachedClaude(
@@ -198,6 +202,18 @@ public final class LocalUsageStore: ObservableObject {
     private func scheduleNextExactRefresh(at date: Date) {
         claudeNextExactRefreshAllowedAt = date
         userDefaults.set(date.timeIntervalSince1970, forKey: CacheKey.claudeNextExactRefreshAllowedAt)
+    }
+
+    private func hasClaudeExactDelay(after date: Date) -> Bool {
+        (claudeBackoffUntil.map { $0 > date } ?? false)
+            || (claudeNextExactRefreshAllowedAt.map { $0 > date } ?? false)
+    }
+
+    private func clearClaudeExactDelays() {
+        claudeBackoffUntil = nil
+        claudeNextExactRefreshAllowedAt = nil
+        userDefaults.removeObject(forKey: CacheKey.claudeBackoffUntil)
+        userDefaults.removeObject(forKey: CacheKey.claudeNextExactRefreshAllowedAt)
     }
 
     private func cacheClaudeExact(_ snapshot: CLIUsageSnapshot) {

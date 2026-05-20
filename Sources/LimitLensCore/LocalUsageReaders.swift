@@ -230,9 +230,16 @@ public enum ClaudeUsageParser {
 }
 
 public protocol UsageReading {
+    func syncClaudeCredentials() async -> Bool
     func readCodex() async -> CLIUsageSnapshot
     func readClaudeExact(now: Date) async throws -> CLIUsageSnapshot
     func readLocalClaude(now: Date) async -> CLIUsageSnapshot?
+}
+
+public extension UsageReading {
+    func syncClaudeCredentials() async -> Bool {
+        false
+    }
 }
 
 public struct LocalUsageReader: UsageReading {
@@ -271,6 +278,13 @@ public struct LocalUsageReader: UsageReading {
                 note: "Aucun événement Codex token_count avec rate_limits trouvé dans ~/.codex/sessions. \(scan.summary)"
             )
         }.value
+    }
+
+    public func syncClaudeCredentials() async -> Bool {
+        guard let syncingStore = claudeOAuthStore as? ClaudeCredentialSyncing else {
+            return false
+        }
+        return await syncingStore.syncAccessTokenIfAvailable()
     }
 
     public func readClaude(now: Date = Date()) async -> CLIUsageSnapshot {

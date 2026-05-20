@@ -26,6 +26,36 @@ final class ProviderCredentialImporterTests: XCTestCase {
         }
     }
 
+    func testSyncedClaudeOAuthStoreRefreshesImportedTokenFromClaudeCode() async throws {
+        let destination = MemorySecretStore()
+        try destination.saveSecret("stale-token", account: ClaudeCredentialImporter.limitLensClaudeAccount)
+        let store = SyncedClaudeOAuthStore(
+            source: StaticImporterClaudeOAuthStore(token: "fresh-token"),
+            destination: destination
+        )
+
+        let token = try await store.readAccessToken()
+
+        XCTAssertEqual(token, "fresh-token")
+        XCTAssertEqual(
+            try destination.readSecret(account: ClaudeCredentialImporter.limitLensClaudeAccount),
+            "fresh-token"
+        )
+    }
+
+    func testSyncedClaudeOAuthStoreFallsBackToImportedTokenWhenClaudeCodeTokenIsUnavailable() async throws {
+        let destination = MemorySecretStore()
+        try destination.saveSecret("imported-token", account: ClaudeCredentialImporter.limitLensClaudeAccount)
+        let store = SyncedClaudeOAuthStore(
+            source: StaticImporterClaudeOAuthStore(token: nil),
+            destination: destination
+        )
+
+        let token = try await store.readAccessToken()
+
+        XCTAssertEqual(token, "imported-token")
+    }
+
     func testClaudeCodeOAuthStoreTriesFallbackKeychainAccounts() async throws {
         let executable = try fakeSecurityExecutable(foundAccount: "root", token: "oauth-root-token")
         let store = ClaudeCodeKeychainOAuthStore(

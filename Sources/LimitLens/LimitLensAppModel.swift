@@ -130,7 +130,7 @@ final class LimitLensAppModel: ObservableObject {
 
         let reader = LocalUsageReader(
             providerFolders: folders,
-            claudeOAuthStore: LimitLensClaudeOAuthStore()
+            claudeOAuthStore: SyncedClaudeOAuthStore()
         )
         return LocalUsageStore(
             reader: reader,

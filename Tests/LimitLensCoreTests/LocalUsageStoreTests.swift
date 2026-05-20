@@ -282,6 +282,28 @@ final class LocalUsageStoreTests: XCTestCase {
     }
 
     @MainActor
+    func testRefreshClearsClaudeExactDelaysWhenCredentialsSync() async {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        let defaults = isolatedDefaults()
+        defaults.set(now.addingTimeInterval(900).timeIntervalSince1970, forKey: "LimitLens.claudeBackoffUntil")
+        defaults.set(now.addingTimeInterval(900).timeIntervalSince1970, forKey: "LimitLens.claudeNextExactRefreshAllowedAt")
+        let reader = StoreTestReader(
+            codex: storeSnapshot(source: .codex, percent: 12),
+            claude: storeSnapshot(source: .claudeCode, percent: 34),
+            syncClaudeCredentialsResult: true
+        )
+        let store = LocalUsageStore(reader: reader, userDefaults: defaults)
+
+        await store.refresh(now: now)
+
+        XCTAssertEqual(reader.claudeCredentialSyncCalls, 1)
+        XCTAssertEqual(reader.claudeExactCalls, 1)
+        XCTAssertEqual(store.snapshot(for: .claudeCode).summary, "Test")
+        XCTAssertEqual(defaults.double(forKey: "LimitLens.claudeBackoffUntil"), 0)
+        XCTAssertEqual(defaults.double(forKey: "LimitLens.claudeNextExactRefreshAllowedAt"), now.addingTimeInterval(15 * 60).timeIntervalSince1970)
+    }
+
+    @MainActor
     func testRefreshIntervalIsPersistedAndReloaded() throws {
         let defaults = isolatedDefaults()
         let reader = LocalUsageReader(
@@ -365,15 +387,27 @@ private final class StoreTestUsageFetcher: ClaudeUsageFetching {
 private final class StoreTestReader: UsageReading {
     let codex: CLIUsageSnapshot
     let claude: CLIUsageSnapshot
+    let syncClaudeCredentialsResult: Bool
+    private(set) var claudeCredentialSyncCalls = 0
     private(set) var claudeExactCalls = 0
 
-    init(codex: CLIUsageSnapshot, claude: CLIUsageSnapshot) {
+    init(
+        codex: CLIUsageSnapshot,
+        claude: CLIUsageSnapshot,
+        syncClaudeCredentialsResult: Bool = false
+    ) {
         self.codex = codex
         self.claude = claude
+        self.syncClaudeCredentialsResult = syncClaudeCredentialsResult
     }
 
     func readCodex() async -> CLIUsageSnapshot {
         codex
+    }
+
+    func syncClaudeCredentials() async -> Bool {
+        claudeCredentialSyncCalls += 1
+        return syncClaudeCredentialsResult
     }
 
     func readClaudeExact(now: Date) async throws -> CLIUsageSnapshot {
