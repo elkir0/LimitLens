@@ -48,23 +48,35 @@ cat > "$EXPORT_OPTIONS" <<'PLIST'
 </plist>
 PLIST
 
-xcodebuild \
-    -project LimitLens.xcodeproj \
-    -scheme LimitLens \
-    -configuration Release \
-    -destination "generic/platform=macOS" \
-    -archivePath "$ARCHIVE_PATH" \
-    -allowProvisioningUpdates \
-    "${XCODEBUILD_SIGNING_ARGS[@]}" \
+ARCHIVE_ARGS=(
+    -project LimitLens.xcodeproj
+    -scheme LimitLens
+    -configuration Release
+    -destination "generic/platform=macOS"
+    -archivePath "$ARCHIVE_PATH"
+    -allowProvisioningUpdates
+)
+if [[ ${#XCODEBUILD_SIGNING_ARGS[@]} -gt 0 ]]; then
+    ARCHIVE_ARGS+=("${XCODEBUILD_SIGNING_ARGS[@]}")
+fi
+ARCHIVE_ARGS+=(
     archive
+)
 
-xcodebuild \
-    -exportArchive \
-    -archivePath "$ARCHIVE_PATH" \
-    -exportPath "$EXPORT_DIR" \
-    -exportOptionsPlist "$EXPORT_OPTIONS" \
-    -allowProvisioningUpdates \
-    "${XCODEBUILD_SIGNING_ARGS[@]}"
+xcodebuild "${ARCHIVE_ARGS[@]}"
+
+EXPORT_ARGS=(
+    -exportArchive
+    -archivePath "$ARCHIVE_PATH"
+    -exportPath "$EXPORT_DIR"
+    -exportOptionsPlist "$EXPORT_OPTIONS"
+    -allowProvisioningUpdates
+)
+if [[ ${#XCODEBUILD_SIGNING_ARGS[@]} -gt 0 ]]; then
+    EXPORT_ARGS+=("${XCODEBUILD_SIGNING_ARGS[@]}")
+fi
+
+xcodebuild "${EXPORT_ARGS[@]}"
 
 if [[ ! -d "$EXPORTED_APP" ]]; then
     echo "Expected exported app was not created: $EXPORTED_APP" >&2

@@ -12,14 +12,21 @@ if [[ -n "${DEVELOPMENT_TEAM:-}" ]]; then
   XCODEBUILD_SIGNING_ARGS+=(DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM")
 fi
 
-xcodebuild \
-  -project LimitLens.xcodeproj \
-  -scheme LimitLens \
-  -configuration Release \
-  -derivedDataPath "$DERIVED" \
-  -allowProvisioningUpdates \
-  "${XCODEBUILD_SIGNING_ARGS[@]}" \
+XCODEBUILD_ARGS=(
+  -project LimitLens.xcodeproj
+  -scheme LimitLens
+  -configuration Release
+  -derivedDataPath "$DERIVED"
+  -allowProvisioningUpdates
+)
+if [[ ${#XCODEBUILD_SIGNING_ARGS[@]} -gt 0 ]]; then
+  XCODEBUILD_ARGS+=("${XCODEBUILD_SIGNING_ARGS[@]}")
+fi
+XCODEBUILD_ARGS+=(
   build
+)
+
+xcodebuild "${XCODEBUILD_ARGS[@]}"
 
 APP_SRC="$DERIVED/Build/Products/Release/LimitLens.app"
 APP_DST="$ROOT_DIR/dist/LimitLens.app"

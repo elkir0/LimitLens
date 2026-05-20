@@ -1,83 +1,129 @@
 # LimitLens
 
-LimitLens is a local-first macOS menu bar app and WidgetKit widget set for monitoring OpenAI Codex and Claude Code usage.
+LimitLens est une application macOS locale pour suivre rapidement les quotas de vos outils IA de code : OpenAI Codex et Claude Code.
 
-It is built for people who use AI coding tools every day and want a quick view of remaining quota without opening each provider manually.
+Elle vit dans la barre de menus, fournit des widgets macOS, fonctionne en sandbox, et ne dépend d'aucun serveur LimitLens.
 
-## Privacy
+![LimitLens, application barre de menus](docs/assets/limitlens-app-demo.png)
 
-LimitLens has no server. The app reads local provider data you explicitly authorize and writes a sanitized local snapshot for widgets. Widgets never read provider credentials, raw logs, prompts, or session files.
+> Captures de démonstration avec données fictives. Aucune donnée de compte réelle n'est incluse dans le dépôt.
 
-Provider data stays on your Mac except for provider-owned usage endpoints that are required for configured features. In the current public scope, Claude exact usage can call Anthropic with a Claude Code OAuth token that you explicitly import. OpenAI Codex usage is read from local Codex session quota events and does not require an OpenAI API key.
+## Pourquoi
 
-## Providers
+Quand on utilise Codex et Claude Code toute la journée, le vrai besoin est simple : voir ce qu'il reste sans ouvrir plusieurs interfaces, sans exposer ses clés, et sans perdre les widgets macOS.
 
-- OpenAI Codex: reads quota events from the Codex sessions folder selected by the user.
-- Claude Code: reads local project usage estimates and can optionally import Claude Code OAuth credentials for exact usage.
+LimitLens affiche l'état utile au bon endroit :
 
-Each provider can be enabled independently, so LimitLens can run as OpenAI-only, Claude-only, or both.
+- dans la barre de menus, avec un pourcentage restant lisible en permanence ;
+- dans une fenêtre popover compacte pour les détails ;
+- dans des widgets macOS petits, moyens et grands ;
+- en mode OpenAI seul, Claude seul, ou les deux.
 
-## Widgets
+## Fonctionnalités
 
-LimitLens includes small, medium, and large WidgetKit widgets for OpenAI Codex, Claude Code, and a combined overview. Install and launch the app once before adding widgets so macOS can register the extension.
+- Suivi local OpenAI Codex depuis les événements de quota présents dans les sessions Codex.
+- Suivi Claude Code avec estimation locale et import optionnel du jeton OAuth Claude Code pour l'usage exact.
+- Widgets séparés pour OpenAI et Claude, plus une vue combinée.
+- Dates et heures de renouvellement des fenêtres de quota.
+- Rafraîchissement configurable.
+- Application sandboxée avec accès dossier explicite via macOS.
+- Interface localisée en français, anglais et espagnol.
 
-## Distribution
+![Widgets LimitLens](docs/assets/limitlens-widgets-demo.png)
 
-LimitLens is designed for Developer ID distribution outside the Mac App Store. Widgets are bundled with the app extension and registered by macOS after installation.
+## Confidentialité
 
-## Build From Source
+LimitLens est conçu pour rester local-first.
 
-Requirements:
+- Aucun serveur LimitLens.
+- Aucune télémétrie.
+- Aucun prompt, log brut, chemin utilisateur ou fichier de session brut dans les widgets.
+- Les secrets restent dans le trousseau macOS.
+- Les widgets lisent uniquement un instantané local nettoyé, prêt à l'affichage.
 
-- macOS 14 or newer
-- Xcode
-- XcodeGen
+OpenAI Codex ne demande pas de clé API OpenAI dans le périmètre actuel : LimitLens lit les événements locaux que Codex écrit déjà sur votre Mac.
 
-Build:
+Claude Code peut fonctionner en estimation locale. L'usage exact est optionnel : si vous choisissez "Importer depuis Claude Code", LimitLens lit le jeton OAuth Claude Code déjà présent dans le trousseau macOS, en stocke une copie dans son propre item Keychain, puis l'utilise uniquement pour interroger le endpoint d'usage Claude Code.
+
+Le détail du modèle de sécurité est dans [SECURITY.md](SECURITY.md). L'audit de publication est dans [docs/security-audit-2026-05-20.md](docs/security-audit-2026-05-20.md).
+
+## Installation
+
+La version compilée est fournie depuis les releases GitHub :
+
+[Télécharger la dernière version](https://github.com/elkir0/LimitLens/releases/latest)
+
+Après installation :
+
+1. Ouvrez LimitLens une première fois.
+2. Choisissez les fournisseurs à activer.
+3. Autorisez les dossiers Codex et/ou Claude Code quand macOS le demande.
+4. Ajoutez les widgets depuis le sélecteur de widgets macOS.
+
+Si macOS bloque un build non notarié, ouvrez l'application avec clic droit puis "Ouvrir", ou compilez depuis les sources. Les releases notarizées seront indiquées explicitement quand un certificat Developer ID est disponible.
+
+## Compilation
+
+Prérequis :
+
+- macOS 14 ou plus récent ;
+- Xcode ;
+- XcodeGen.
+
+Build local :
 
 ```bash
 DEVELOPMENT_TEAM=YOURTEAMID ./Scripts/build-app.sh
 ```
 
-The `DEVELOPMENT_TEAM` value is optional when Xcode can infer a signing team
-from your local account, but setting it makes CLI builds deterministic.
-
-## Local Install
+Installation locale pour tester app + widgets :
 
 ```bash
 ./Scripts/install-app.sh
 ```
 
-The install script copies the app to `/Applications`, refreshes LaunchServices, and re-registers the widget extension for local testing.
-
-## Release
-
-Create an archive:
+Archive de distribution :
 
 ```bash
 ./Scripts/archive-app.sh
 ```
 
-Notarize when Apple Developer credentials are configured:
+Notarisation, si le profil Apple est configuré :
 
 ```bash
 ./Scripts/notarize-app.sh dist/LimitLens.zip
 ```
 
-The notarization script expects a `notarytool` keychain profile named `LimitLens`, or the profile named by `NOTARYTOOL_PROFILE`.
+Le script de notarisation utilise par défaut un profil `notarytool` nommé `LimitLens`, ou la valeur de `NOTARYTOOL_PROFILE`.
 
-## Troubleshooting Widgets
+## Widgets
 
-If old widgets remain visible after updating a local build, remove the widget from Notification Center, run the install script again, then add the widget back.
+LimitLens embarque plusieurs widgets WidgetKit :
 
-For development diagnostics:
+- petit OpenAI ;
+- petit Claude Code ;
+- moyen OpenAI ;
+- moyen Claude Code ;
+- grand OpenAI ;
+- grand Claude Code ;
+- grand aperçu combiné.
+
+Si un ancien widget reste visible après une mise à jour locale, retirez-le du bureau, relancez `./Scripts/install-app.sh`, puis ajoutez-le à nouveau.
+
+## Publication
+
+Le dépôt public exclut les artefacts de build, archives, profils de signature, fichiers `.env`, clés privées, projet Xcode généré et notes internes de travail.
+
+Avant chaque release, refaire au minimum :
 
 ```bash
-pluginkit -m -A -D -vvv -i com.limitlens.dashboard.widget
+swift test
+python3 Scripts/make-readme-assets.py
+git ls-files
 ```
 
-The active registration should point to `/Applications/LimitLens.app/Contents/PlugIns/LimitLensWidgetExtension.appex`.
+Puis vérifier que l'archive publiée ne contient que `LimitLens.app`.
 
-## License
+## Licence
 
-LimitLens is released under the MIT License.
+LimitLens est distribué sous licence MIT.

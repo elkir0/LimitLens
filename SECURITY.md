@@ -1,16 +1,42 @@
-# Security Policy
+# Politique de sécurité
 
-Please report security issues privately by opening a GitHub security advisory or contacting the maintainer through GitHub.
+Merci de signaler les problèmes de sécurité en privé via une GitHub Security Advisory, ou en contactant le mainteneur depuis GitHub.
 
-Do not include OAuth tokens, API keys, raw session logs, private prompts, or provider account details in public issues.
+N'ouvrez pas d'issue publique contenant un jeton OAuth, une clé API, un log de session brut, un prompt privé, un identifiant de compte ou une capture contenant des données de quota personnelles.
 
-## Privacy Expectations
+## Modèle de sécurité
 
-LimitLens should remain local-first:
+LimitLens doit rester local-first :
 
-- no LimitLens backend;
-- no telemetry;
-- no raw prompts or raw provider logs in widget snapshots;
-- no provider credentials outside the macOS Keychain.
+- aucun serveur LimitLens ;
+- aucune télémétrie ;
+- aucune clé fournisseur dans le dépôt ;
+- aucun prompt ou log brut dans les widgets ;
+- aucun secret hors du trousseau macOS ;
+- accès aux dossiers accordé explicitement par macOS ;
+- snapshot widget nettoyé et limité aux données d'affichage.
 
-Changes that expand data collection or network behavior should include tests and documentation updates.
+## Données lues
+
+- OpenAI Codex : événements locaux de quota dans le dossier Codex choisi par l'utilisateur.
+- Claude Code : estimation locale depuis les fichiers Claude choisis par l'utilisateur.
+- Claude exact, optionnel : jeton OAuth Claude Code importé depuis le trousseau macOS et utilisé uniquement pour interroger l'usage Claude Code.
+
+## Données stockées
+
+- Préférences de configuration sans secret.
+- Bookmarks de sécurité macOS pour les dossiers autorisés.
+- Jeton OAuth Claude Code dans le trousseau macOS, uniquement si l'utilisateur lance l'import.
+- Snapshot local nettoyé pour les widgets, sans token, clé API, prompt, log brut ni chemin utilisateur.
+
+## Avant une release
+
+Vérifier :
+
+- `swift test` ;
+- absence de secrets dans l'arbre courant ;
+- absence de secrets dans l'historique Git ;
+- absence d'archives, profils de signature, fichiers `.env` ou notes internes ;
+- signature et, si disponible, notarisation de l'archive macOS.
+
+Le dernier audit documenté est dans [docs/security-audit-2026-05-20.md](docs/security-audit-2026-05-20.md).
