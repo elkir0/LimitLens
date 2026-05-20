@@ -145,6 +145,7 @@ struct LimitLensWidgetView: View {
                 ForEach(provider.limits.prefix(3), id: \.label) { limit in
                     limitRow(limit, health: provider.health, compact: true)
                 }
+                providerStatusLine(provider, compact: true)
             } else if let provider {
                 providerSetupView(provider, compact: false)
             } else {
@@ -183,6 +184,8 @@ struct LimitLensWidgetView: View {
                 if !provider.metrics.isEmpty {
                     metricGrid(provider.metrics)
                 }
+
+                providerStatusLine(provider, compact: false)
             } else if let provider {
                 providerSetupView(provider, compact: false)
             } else {
@@ -365,6 +368,9 @@ struct LimitLensWidgetView: View {
     }
 
     private func providerSmallSubtitle(_ provider: SharedSnapshot.Provider) -> String {
+        if provider.remainingText == nil, let summary = provider.summary, !summary.isEmpty {
+            return summary
+        }
         if let weeklyReset = provider.weeklyResetText() {
             return "Semaine · \(weeklyReset)"
         }
@@ -375,7 +381,28 @@ struct LimitLensWidgetView: View {
         guard provider.hasDisplayData else {
             return setupTitle(for: provider)
         }
-        return provider.remainingText.map { "\($0) restant" } ?? provider.primaryMetricText ?? "indisponible"
+        return provider.remainingText.map { "\($0) restant" } ?? provider.summary ?? provider.primaryMetricText ?? "indisponible"
+    }
+
+    @ViewBuilder
+    private func providerStatusLine(_ provider: SharedSnapshot.Provider, compact: Bool) -> some View {
+        if let status = providerStatusText(provider) {
+            Text(status)
+                .font(.system(size: compact ? 9 : 10, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+                .lineLimit(compact ? 1 : 2)
+                .minimumScaleFactor(0.75)
+        }
+    }
+
+    private func providerStatusText(_ provider: SharedSnapshot.Provider) -> String? {
+        if let note = provider.note?.trimmingCharacters(in: .whitespacesAndNewlines), !note.isEmpty {
+            return note
+        }
+        if provider.remainingText == nil, let summary = provider.summary, !summary.isEmpty {
+            return summary
+        }
+        return nil
     }
 
     private func setupTitle(for provider: SharedSnapshot.Provider) -> String {

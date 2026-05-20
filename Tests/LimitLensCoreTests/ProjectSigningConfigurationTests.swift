@@ -35,6 +35,18 @@ final class ProjectSigningConfigurationTests: XCTestCase {
         XCTAssertTrue(settings.contains("setupMessage"))
     }
 
+    func testWidgetViewDisplaysProviderStatusMessages() throws {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let widgetView = try String(
+            contentsOf: root.appendingPathComponent("Sources/LimitLensWidget/LimitLensWidgetView.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(widgetView.contains("provider.note"))
+        XCTAssertTrue(widgetView.contains("provider.summary"))
+        XCTAssertTrue(widgetView.contains("providerStatusLine"))
+    }
+
     func testMainAppCanWriteSanitizedApplicationSupportSnapshot() throws {
         let entitlements = try readPlist("Sources/LimitLens/LimitLens.entitlements")
         let snapshotPaths = entitlements[

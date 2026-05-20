@@ -66,6 +66,8 @@ public struct SharedSnapshot: Codable, Equatable, Sendable {
         public let source: String
         public let healthRawValue: String
         public let setupStateRawValue: String
+        public let summary: String?
+        public let note: String?
         public let limits: [Limit]
         public let metrics: [Metric]
 
@@ -73,6 +75,8 @@ public struct SharedSnapshot: Codable, Equatable, Sendable {
             case source
             case healthRawValue
             case setupStateRawValue = "setupState"
+            case summary
+            case note
             case limits
             case metrics
         }
@@ -81,12 +85,16 @@ public struct SharedSnapshot: Codable, Equatable, Sendable {
             source: String,
             healthRawValue: String,
             setupStateRawValue: String = ProviderSetupState.active.rawValue,
+            summary: String? = nil,
+            note: String? = nil,
             limits: [Limit],
             metrics: [Metric] = []
         ) {
             self.source = source
             self.healthRawValue = healthRawValue
             self.setupStateRawValue = setupStateRawValue
+            self.summary = summary
+            self.note = note
             self.limits = limits
             self.metrics = metrics
         }
@@ -97,6 +105,8 @@ public struct SharedSnapshot: Codable, Equatable, Sendable {
             self.healthRawValue = try container.decode(String.self, forKey: .healthRawValue)
             self.setupStateRawValue = try container.decodeIfPresent(String.self, forKey: .setupStateRawValue)
                 ?? ProviderSetupState.active.rawValue
+            self.summary = try container.decodeIfPresent(String.self, forKey: .summary)
+            self.note = try container.decodeIfPresent(String.self, forKey: .note)
             self.limits = try container.decode([Limit].self, forKey: .limits)
             self.metrics = try container.decodeIfPresent([Metric].self, forKey: .metrics) ?? []
         }
@@ -106,6 +116,8 @@ public struct SharedSnapshot: Codable, Equatable, Sendable {
             try container.encode(source, forKey: .source)
             try container.encode(healthRawValue, forKey: .healthRawValue)
             try container.encode(setupStateRawValue, forKey: .setupStateRawValue)
+            try container.encodeIfPresent(summary, forKey: .summary)
+            try container.encodeIfPresent(note, forKey: .note)
             try container.encode(limits, forKey: .limits)
             try container.encode(metrics, forKey: .metrics)
         }
@@ -189,6 +201,8 @@ public struct SharedSnapshot: Codable, Equatable, Sendable {
             source: snapshot.source.rawValue,
             healthRawValue: snapshot.health.rawValue,
             setupStateRawValue: setupState.rawValue,
+            summary: snapshot.summary,
+            note: snapshot.note,
             limits: snapshot.limits.map { limit in
                 Limit(
                     label: limit.label,

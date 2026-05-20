@@ -70,11 +70,14 @@ public final class LocalUsageStore: ObservableObject {
     private func readStableClaude(now: Date) async -> CLIUsageSnapshot {
         if let claudeBackoffUntil, claudeBackoffUntil > now {
             if let cachedClaudeExact {
-                return cachedClaude(cachedClaudeExact, reason: "Endpoint /usage Claude Code temporairement limité; dernier quota exact conservé.")
+                return cachedClaude(
+                    cachedClaudeExact,
+                    reason: Self.claudeRateLimitReason(until: claudeBackoffUntil, mode: .cached)
+                )
             }
             if let local = await localClaudeFallback(
                 now: now,
-                reason: "Endpoint /usage Claude Code temporairement limité; estimation locale affichée."
+                reason: Self.claudeRateLimitReason(until: claudeBackoffUntil, mode: .localEstimate)
             ) {
                 return local
             }
@@ -107,12 +110,12 @@ public final class LocalUsageStore: ObservableObject {
             if let cachedClaudeExact {
                 return cachedClaude(
                     cachedClaudeExact,
-                    reason: "Endpoint /usage Claude Code temporairement limité; dernier quota exact conservé."
+                    reason: Self.claudeRateLimitReason(until: backoffUntil, mode: .cached)
                 )
             }
             if let local = await localClaudeFallback(
                 now: now,
-                reason: "Endpoint /usage Claude Code temporairement limité; estimation locale affichée."
+                reason: Self.claudeRateLimitReason(until: backoffUntil, mode: .localEstimate)
             ) {
                 return local
             }
@@ -216,6 +219,24 @@ public final class LocalUsageStore: ObservableObject {
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.dateFormat = "EEE',' dd MMM yyyy HH':'mm':'ss z"
         return formatter.date(from: retryAfter) ?? now.addingTimeInterval(15 * 60)
+    }
+
+    private enum ClaudeRateLimitMode {
+        case cached
+        case localEstimate
+    }
+
+    private static func claudeRateLimitReason(
+        until date: Date,
+        mode: ClaudeRateLimitMode
+    ) -> String {
+        let retryText = MetricFormatter.shortTime(date)
+        switch mode {
+        case .cached:
+            return "Endpoint /usage Claude Code limité jusqu'à \(retryText); dernier quota exact conservé."
+        case .localEstimate:
+            return "Endpoint /usage Claude Code limité jusqu'à \(retryText); estimation locale affichée."
+        }
     }
 
     /// Starts the periodic refresh loop. Safe to call repeatedly; only the first

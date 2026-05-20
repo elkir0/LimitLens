@@ -81,6 +81,26 @@ final class SharedSnapshotTests: XCTestCase {
         XCTAssertEqual(shared.providers[0].primaryMetricText, "1.4K tok 5h local")
     }
 
+    func testSharedSnapshotCarriesProviderSummaryAndNote() {
+        let live = CLIUsageSnapshot(
+            source: .claudeCode,
+            health: .warning,
+            summary: "Estimation locale",
+            limits: [],
+            metrics: [UsageMetric(id: "5h", title: "5h local", value: "1.4K tok")],
+            lastUpdated: nil,
+            note: "Endpoint /usage Claude Code limité jusqu'à 16:02; estimation locale affichée."
+        )
+
+        let shared = SharedSnapshot(from: [live], generatedAt: Date(timeIntervalSince1970: 0))
+
+        XCTAssertEqual(shared.providers[0].summary, "Estimation locale")
+        XCTAssertEqual(
+            shared.providers[0].note,
+            "Endpoint /usage Claude Code limité jusqu'à 16:02; estimation locale affichée."
+        )
+    }
+
     func testGlobalAccessorsUseLowestRemainingAndWorstHealth() {
         let snapshot = SharedSnapshot(
             generatedAt: Date(timeIntervalSince1970: 0),

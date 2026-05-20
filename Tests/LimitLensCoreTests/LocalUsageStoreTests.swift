@@ -162,6 +162,37 @@ final class LocalUsageStoreTests: XCTestCase {
     }
 
     @MainActor
+    func testRateLimitedClaudeLocalFallbackShowsRetryTime() async throws {
+        let home = try temporaryHome()
+        let projects = home.appendingPathComponent(".claude/projects/project")
+        try FileManager.default.createDirectory(at: projects, withIntermediateDirectories: true)
+        try """
+        {"timestamp":"2026-05-17T18:00:00.123Z","type":"assistant","message":{"model":"claude-opus-4-7","usage":{"input_tokens":100,"output_tokens":50,"cache_read_input_tokens":1000,"cache_creation_input_tokens":200}}}
+        """.write(
+            to: projects.appendingPathComponent("session.jsonl"),
+            atomically: true,
+            encoding: .utf8
+        )
+        let fetcher = StoreTestUsageFetcher(results: [
+            .failure(ProviderClientError.rateLimited(retryAfter: "120"))
+        ])
+        let reader = LocalUsageReader(
+            homeDirectory: home,
+            providerFolders: [.claudeCode: home.appendingPathComponent(".claude/projects")],
+            claudeOAuthStore: StoreTestOAuthStore(token: "t"),
+            claudeUsageFetcher: fetcher
+        )
+        let store = LocalUsageStore(reader: reader, userDefaults: isolatedDefaults())
+        let now = ISO8601DateFormatter().date(from: "2026-05-17T20:00:00Z")!
+
+        await store.refresh(now: now)
+
+        let claude = store.snapshot(for: .claudeCode)
+        XCTAssertEqual(claude.summary, "Estimation locale")
+        XCTAssertTrue(claude.note?.contains("jusqu'à \(MetricFormatter.shortTime(now.addingTimeInterval(120)))") == true)
+    }
+
+    @MainActor
     func testRefreshUsesLocalClaudeDuringRateLimitBackoffWithoutExactCache() async throws {
         let home = try temporaryHome()
         let projects = home.appendingPathComponent(".claude/projects/project")
