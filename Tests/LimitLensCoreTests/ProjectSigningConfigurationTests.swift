@@ -18,7 +18,10 @@ final class ProjectSigningConfigurationTests: XCTestCase {
         )
 
         XCTAssertTrue(picker.contains("panel.showsHiddenFiles = true"))
-        XCTAssertTrue(picker.contains("defaultURL.deletingLastPathComponent()"))
+        XCTAssertTrue(picker.contains("NSApp.activate(ignoringOtherApps: true)"))
+        XCTAssertTrue(picker.contains("NSApp.setActivationPolicy(.regular)"))
+        XCTAssertTrue(picker.contains("panel.begin"))
+        XCTAssertFalse(picker.contains("runModal()"))
     }
 
     func testMainAppCanWriteSanitizedApplicationSupportSnapshot() throws {

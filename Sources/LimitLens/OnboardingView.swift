@@ -158,7 +158,9 @@ struct OnboardingView: View {
             }
             Spacer()
             Button(String(localized: "setup.choose")) {
-                chooseFolder(source: source, prompt: title)
+                Task {
+                    await chooseFolder(source: source, prompt: title)
+                }
             }
         }
         .padding(10)
@@ -180,9 +182,9 @@ struct OnboardingView: View {
         }
     }
 
-    private func chooseFolder(source: CLIUsageSource, prompt: String) {
+    private func chooseFolder(source: CLIUsageSource, prompt: String) async {
         do {
-            if let bookmark = try folderPicker.pickFolder(
+            if let bookmark = try await folderPicker.pickFolder(
                 prompt: prompt,
                 defaultURL: defaultFolder(for: source)
             ) {

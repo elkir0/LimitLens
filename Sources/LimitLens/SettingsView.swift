@@ -143,7 +143,9 @@ struct SettingsView: View {
 
             HStack(spacing: 8) {
                 Button(String(localized: "setup.choose")) {
-                    chooseFolder(source: source, prompt: title)
+                    Task {
+                        await chooseFolder(source: source, prompt: title)
+                    }
                 }
                 .disabled(appModel.configuration.providers[source]?.mode == .disabled)
 
@@ -168,9 +170,9 @@ struct SettingsView: View {
         }
     }
 
-    private func chooseFolder(source: CLIUsageSource, prompt: String) {
+    private func chooseFolder(source: CLIUsageSource, prompt: String) async {
         do {
-            if let bookmark = try folderPicker.pickFolder(
+            if let bookmark = try await folderPicker.pickFolder(
                 prompt: prompt,
                 defaultURL: defaultFolder(for: source)
             ) {
