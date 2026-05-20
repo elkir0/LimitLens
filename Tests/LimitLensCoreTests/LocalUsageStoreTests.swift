@@ -178,7 +178,7 @@ final class LocalUsageStoreTests: XCTestCase {
         XCTAssertTrue(claude.note?.contains("prochain essai exact") == true)
         XCTAssertEqual(
             defaults.double(forKey: "LimitLens.claudeNextExactRefreshAllowedAt"),
-            now.addingTimeInterval(60 * 60).timeIntervalSince1970,
+            now.addingTimeInterval(15 * 60).timeIntervalSince1970,
             accuracy: 0.001
         )
     }
@@ -217,7 +217,7 @@ final class LocalUsageStoreTests: XCTestCase {
     }
 
     @MainActor
-    func testRateLimitedClaudeLocalFallbackShowsConservativeRetryTime() async throws {
+    func testRateLimitedClaudeLocalFallbackShowsMinimumThrottleRetryTime() async throws {
         let home = try temporaryHome()
         let projects = home.appendingPathComponent(".claude/projects/project")
         try FileManager.default.createDirectory(at: projects, withIntermediateDirectories: true)
@@ -244,7 +244,7 @@ final class LocalUsageStoreTests: XCTestCase {
 
         let claude = store.snapshot(for: .claudeCode)
         XCTAssertEqual(claude.summary, "Estimation locale")
-        XCTAssertTrue(claude.note?.contains("jusqu'à \(MetricFormatter.shortTime(now.addingTimeInterval(60 * 60)))") == true)
+        XCTAssertTrue(claude.note?.contains("jusqu'à \(MetricFormatter.shortTime(now.addingTimeInterval(15 * 60)))") == true)
     }
 
     @MainActor

@@ -31,7 +31,7 @@ public final class LocalUsageStore: ObservableObject {
         reader: any UsageReading = LocalUsageReader(),
         configuration: ProviderConfiguration = .defaultEnabled,
         userDefaults: UserDefaults = .standard,
-        claudeExactMinimumInterval: TimeInterval = 60 * 60
+        claudeExactMinimumInterval: TimeInterval = 15 * 60
     ) {
         self.reader = reader
         self.configuration = configuration
