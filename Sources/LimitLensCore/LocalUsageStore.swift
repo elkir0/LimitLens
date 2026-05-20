@@ -15,29 +15,36 @@ public final class LocalUsageStore: ObservableObject {
     private let reader: any UsageReading
     public let configuration: ProviderConfiguration
     private let userDefaults: UserDefaults
+    private let claudeExactMinimumInterval: TimeInterval
     private var autoRefreshStarted = false
     private var cachedClaudeExact: CLIUsageSnapshot?
     private var claudeBackoffUntil: Date?
+    private var claudeNextExactRefreshAllowedAt: Date?
 
     private enum CacheKey {
         static let claudeExactSnapshot = "LimitLens.claudeExactSnapshot"
         static let claudeBackoffUntil = "LimitLens.claudeBackoffUntil"
+        static let claudeNextExactRefreshAllowedAt = "LimitLens.claudeNextExactRefreshAllowedAt"
     }
 
     public init(
         reader: any UsageReading = LocalUsageReader(),
         configuration: ProviderConfiguration = .defaultEnabled,
-        userDefaults: UserDefaults = .standard
+        userDefaults: UserDefaults = .standard,
+        claudeExactMinimumInterval: TimeInterval = 60 * 60
     ) {
         self.reader = reader
         self.configuration = configuration
         self.userDefaults = userDefaults
+        self.claudeExactMinimumInterval = claudeExactMinimumInterval
         self.refreshInterval = RefreshInterval.resolved(
             rawValue: userDefaults.integer(forKey: RefreshInterval.userDefaultsKey)
         )
         self.cachedClaudeExact = Self.readCachedClaudeExact(from: userDefaults)
         let backoffTimestamp = userDefaults.double(forKey: CacheKey.claudeBackoffUntil)
         self.claudeBackoffUntil = backoffTimestamp > 0 ? Date(timeIntervalSince1970: backoffTimestamp) : nil
+        let nextExactTimestamp = userDefaults.double(forKey: CacheKey.claudeNextExactRefreshAllowedAt)
+        self.claudeNextExactRefreshAllowedAt = nextExactTimestamp > 0 ? Date(timeIntervalSince1970: nextExactTimestamp) : nil
         self.snapshots = configuration.activeSources.map {
             .unavailable(source: $0, note: "En attente de la première lecture locale.")
         }
@@ -87,11 +94,27 @@ public final class LocalUsageStore: ObservableObject {
             )
         }
 
+        if let claudeNextExactRefreshAllowedAt, claudeNextExactRefreshAllowedAt > now {
+            if let cachedClaudeExact {
+                return cachedClaude(
+                    cachedClaudeExact,
+                    reason: Self.claudeExactCooldownReason(until: claudeNextExactRefreshAllowedAt, mode: .cached)
+                )
+            }
+            if let local = await localClaudeFallback(
+                now: now,
+                reason: Self.claudeExactCooldownReason(until: claudeNextExactRefreshAllowedAt, mode: .localEstimate)
+            ) {
+                return local
+            }
+        }
+
         do {
             let exact = try await reader.readClaudeExact(now: now)
             if exact.hasUtilizationPercent {
                 cacheClaudeExact(exact)
             }
+            scheduleNextExactRefresh(after: now)
             claudeBackoffUntil = nil
             userDefaults.removeObject(forKey: CacheKey.claudeBackoffUntil)
 
@@ -104,9 +127,13 @@ public final class LocalUsageStore: ObservableObject {
                 reason: "Endpoint /usage Claude Code sans pourcentage exploitable; dernier quota exact conservé."
             )
         } catch ProviderClientError.rateLimited(let retryAfter) {
-            let backoffUntil = Self.rateLimitBackoffDate(retryAfter: retryAfter, now: now)
+            let backoffUntil = max(
+                Self.rateLimitBackoffDate(retryAfter: retryAfter, now: now),
+                now.addingTimeInterval(claudeExactMinimumInterval)
+            )
             claudeBackoffUntil = backoffUntil
             userDefaults.set(backoffUntil.timeIntervalSince1970, forKey: CacheKey.claudeBackoffUntil)
+            scheduleNextExactRefresh(at: backoffUntil)
             if let cachedClaudeExact {
                 return cachedClaude(
                     cachedClaudeExact,
@@ -157,6 +184,20 @@ public final class LocalUsageStore: ObservableObject {
                 note: "Lecture exacte Claude Code impossible: \(error.localizedDescription)"
             )
         }
+    }
+
+    private func scheduleNextExactRefresh(after date: Date) {
+        guard claudeExactMinimumInterval > 0 else {
+            claudeNextExactRefreshAllowedAt = nil
+            userDefaults.removeObject(forKey: CacheKey.claudeNextExactRefreshAllowedAt)
+            return
+        }
+        scheduleNextExactRefresh(at: date.addingTimeInterval(claudeExactMinimumInterval))
+    }
+
+    private func scheduleNextExactRefresh(at date: Date) {
+        claudeNextExactRefreshAllowedAt = date
+        userDefaults.set(date.timeIntervalSince1970, forKey: CacheKey.claudeNextExactRefreshAllowedAt)
     }
 
     private func cacheClaudeExact(_ snapshot: CLIUsageSnapshot) {
@@ -236,6 +277,24 @@ public final class LocalUsageStore: ObservableObject {
             return "Endpoint /usage Claude Code limité jusqu'à \(retryText); dernier quota exact conservé."
         case .localEstimate:
             return "Endpoint /usage Claude Code limité jusqu'à \(retryText); estimation locale affichée."
+        }
+    }
+
+    private enum ClaudeExactCooldownMode {
+        case cached
+        case localEstimate
+    }
+
+    private static func claudeExactCooldownReason(
+        until date: Date,
+        mode: ClaudeExactCooldownMode
+    ) -> String {
+        let retryText = MetricFormatter.shortTime(date)
+        switch mode {
+        case .cached:
+            return "Appel exact Claude espacé pour éviter les limites; prochain essai exact à \(retryText). Dernier quota exact conservé."
+        case .localEstimate:
+            return "Appel exact Claude espacé pour éviter les limites; prochain essai exact à \(retryText). Estimation locale affichée."
         }
     }
 

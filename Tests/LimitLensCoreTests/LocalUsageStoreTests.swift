@@ -77,7 +77,11 @@ final class LocalUsageStoreTests: XCTestCase {
             claudeOAuthStore: StoreTestOAuthStore(token: "t"),
             claudeUsageFetcher: fetcher
         )
-        let store = LocalUsageStore(reader: reader, userDefaults: isolatedDefaults())
+        let store = LocalUsageStore(
+            reader: reader,
+            userDefaults: isolatedDefaults(),
+            claudeExactMinimumInterval: 0
+        )
 
         await store.refresh(now: Date(timeIntervalSince1970: 1_700_000_100))
         await store.refresh(now: Date(timeIntervalSince1970: 1_700_000_200))
@@ -118,7 +122,11 @@ final class LocalUsageStoreTests: XCTestCase {
             claudeOAuthStore: StoreTestOAuthStore(token: "t"),
             claudeUsageFetcher: fetcher
         )
-        let store = LocalUsageStore(reader: reader, userDefaults: isolatedDefaults())
+        let store = LocalUsageStore(
+            reader: reader,
+            userDefaults: isolatedDefaults(),
+            claudeExactMinimumInterval: 0
+        )
 
         await store.refresh(now: Date(timeIntervalSince1970: 1_700_000_000))
         await store.refresh(now: Date(timeIntervalSince1970: 1_700_000_060))
@@ -126,6 +134,53 @@ final class LocalUsageStoreTests: XCTestCase {
 
         XCTAssertEqual(fetcher.callCount, 2)
         XCTAssertEqual(store.snapshot(for: .claudeCode).limits.first?.usedPercent, 12)
+    }
+
+    @MainActor
+    func testRefreshSkipsClaudeUsageEndpointDuringExactCooldown() async throws {
+        let exactClaude = CLIUsageSnapshot(
+            source: .claudeCode,
+            health: .ok,
+            summary: "Exact /usage",
+            limits: [
+                UsageLimitState(
+                    id: "five_hour",
+                    label: "Session courante",
+                    usedPercent: 12,
+                    resetDate: nil,
+                    detail: "Fenêtre 5h"
+                )
+            ],
+            metrics: [],
+            lastUpdated: Date(timeIntervalSince1970: 1_700_000_000),
+            note: "Lu depuis le endpoint OAuth Claude Code."
+        )
+        let fetcher = StoreTestUsageFetcher(results: [
+            .success(exactClaude),
+            .success(CLIUsageSnapshot.unavailable(source: .claudeCode, note: "Ne devrait pas être appelé."))
+        ])
+        let reader = LocalUsageReader(
+            homeDirectory: try temporaryHome(),
+            claudeOAuthStore: StoreTestOAuthStore(token: "t"),
+            claudeUsageFetcher: fetcher
+        )
+        let defaults = isolatedDefaults()
+        let store = LocalUsageStore(reader: reader, userDefaults: defaults)
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+
+        await store.refresh(now: now)
+        await store.refresh(now: now.addingTimeInterval(120))
+
+        let claude = store.snapshot(for: .claudeCode)
+        XCTAssertEqual(fetcher.callCount, 1)
+        XCTAssertEqual(claude.summary, "Exact /usage (cache)")
+        XCTAssertEqual(claude.limits.first?.usedPercent, 12)
+        XCTAssertTrue(claude.note?.contains("prochain essai exact") == true)
+        XCTAssertEqual(
+            defaults.double(forKey: "LimitLens.claudeNextExactRefreshAllowedAt"),
+            now.addingTimeInterval(60 * 60).timeIntervalSince1970,
+            accuracy: 0.001
+        )
     }
 
     @MainActor
@@ -162,7 +217,7 @@ final class LocalUsageStoreTests: XCTestCase {
     }
 
     @MainActor
-    func testRateLimitedClaudeLocalFallbackShowsRetryTime() async throws {
+    func testRateLimitedClaudeLocalFallbackShowsConservativeRetryTime() async throws {
         let home = try temporaryHome()
         let projects = home.appendingPathComponent(".claude/projects/project")
         try FileManager.default.createDirectory(at: projects, withIntermediateDirectories: true)
@@ -189,7 +244,7 @@ final class LocalUsageStoreTests: XCTestCase {
 
         let claude = store.snapshot(for: .claudeCode)
         XCTAssertEqual(claude.summary, "Estimation locale")
-        XCTAssertTrue(claude.note?.contains("jusqu'à \(MetricFormatter.shortTime(now.addingTimeInterval(120)))") == true)
+        XCTAssertTrue(claude.note?.contains("jusqu'à \(MetricFormatter.shortTime(now.addingTimeInterval(60 * 60)))") == true)
     }
 
     @MainActor
