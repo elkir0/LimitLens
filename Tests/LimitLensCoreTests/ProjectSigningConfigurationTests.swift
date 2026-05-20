@@ -24,6 +24,17 @@ final class ProjectSigningConfigurationTests: XCTestCase {
         XCTAssertFalse(picker.contains("runModal()"))
     }
 
+    func testSettingsViewDisplaysProviderSetupMessages() throws {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let settings = try String(
+            contentsOf: root.appendingPathComponent("Sources/LimitLens/SettingsView.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(settings.contains("appModel.setupMessage"))
+        XCTAssertTrue(settings.contains("setupMessage"))
+    }
+
     func testMainAppCanWriteSanitizedApplicationSupportSnapshot() throws {
         let entitlements = try readPlist("Sources/LimitLens/LimitLens.entitlements")
         let snapshotPaths = entitlements[

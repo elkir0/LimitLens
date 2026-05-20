@@ -25,6 +25,64 @@ final class ProviderCredentialImporterTests: XCTestCase {
             try await importer.importClaudeCodeToken()
         }
     }
+
+    func testClaudeCodeOAuthStoreTriesFallbackKeychainAccounts() async throws {
+        let executable = try fakeSecurityExecutable(foundAccount: "root", token: "oauth-root-token")
+        let store = ClaudeCodeKeychainOAuthStore(
+            accounts: ["example-user", "root"],
+            securityExecutable: executable,
+            timeout: 2
+        )
+
+        let token = try await store.readAccessToken()
+
+        XCTAssertEqual(token, "oauth-root-token")
+    }
+
+    func testClaudeCodeOAuthStoreReturnsNilWhenNoCandidateAccountExists() async throws {
+        let executable = try fakeSecurityExecutable(foundAccount: "nobody", token: "oauth-token")
+        let store = ClaudeCodeKeychainOAuthStore(
+            accounts: ["example-user", "root"],
+            securityExecutable: executable,
+            timeout: 2
+        )
+
+        let token = try await store.readAccessToken()
+
+        XCTAssertNil(token)
+    }
+
+    private func fakeSecurityExecutable(foundAccount: String, token: String) throws -> URL {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("LimitLensSecurityTests")
+            .appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let executable = directory.appendingPathComponent("security")
+        try """
+        #!/bin/sh
+        account=""
+        while [ "$#" -gt 0 ]; do
+          case "$1" in
+            -a)
+              shift
+              account="$1"
+              ;;
+          esac
+          shift
+        done
+        if [ "$account" = "\(foundAccount)" ]; then
+          printf '%s' '{"claudeAiOauth":{"accessToken":"\(token)"}}'
+          exit 0
+        fi
+        echo 'security: SecKeychainSearchCopyNext: The specified item could not be found in the keychain.' >&2
+        exit 44
+        """.write(to: executable, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o755],
+            ofItemAtPath: executable.path
+        )
+        return executable
+    }
 }
 
 private struct StaticImporterClaudeOAuthStore: ClaudeOAuthStore {

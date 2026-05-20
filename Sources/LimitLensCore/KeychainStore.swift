@@ -92,19 +92,46 @@ public struct ClaudeCodeKeychainOAuthStore: ClaudeOAuthStore {
     private let readRawSecret: () throws -> String?
 
     public init(
-        account: String = ProcessInfo.processInfo.environment["USER"] ?? NSUserName(),
         service: String = "Claude Code-credentials",
         securityExecutable: URL = URL(fileURLWithPath: "/usr/bin/security"),
         timeout: TimeInterval = 2
     ) {
+        self.init(
+            accounts: Self.defaultCandidateAccounts(),
+            service: service,
+            securityExecutable: securityExecutable,
+            timeout: timeout
+        )
+    }
+
+    public init(
+        accounts: [String],
+        service: String = "Claude Code-credentials",
+        securityExecutable: URL = URL(fileURLWithPath: "/usr/bin/security"),
+        timeout: TimeInterval = 2
+    ) {
+        let accounts = Self.uniqueNonEmpty(accounts)
         self.readRawSecret = {
             try SecurityCommandReader(
                 executable: securityExecutable,
-                account: account,
                 service: service,
                 timeout: timeout
-            ).readSecret()
+            ).readFirstSecret(accounts: accounts)
         }
+    }
+
+    public init(
+        account: String,
+        service: String = "Claude Code-credentials",
+        securityExecutable: URL = URL(fileURLWithPath: "/usr/bin/security"),
+        timeout: TimeInterval = 2
+    ) {
+        self.init(
+            accounts: [account],
+            service: service,
+            securityExecutable: securityExecutable,
+            timeout: timeout
+        )
     }
 
     public init(secretStore: SecretStore, account: String) {
@@ -133,15 +160,42 @@ public struct ClaudeCodeKeychainOAuthStore: ClaudeOAuthStore {
         let credentials = try JSONDecoder().decode(ClaudeCodeKeychainCredentials.self, from: data)
         return credentials.claudeAiOauth.accessToken.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
     }
+
+    private static func defaultCandidateAccounts() -> [String] {
+        uniqueNonEmpty([
+            ProcessInfo.processInfo.environment["USER"],
+            NSUserName(),
+            "root"
+        ].compactMap { $0 })
+    }
+
+    private static func uniqueNonEmpty(_ values: [String]) -> [String] {
+        var seen: Set<String> = []
+        return values.compactMap { value in
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty, seen.insert(trimmed).inserted else {
+                return nil
+            }
+            return trimmed
+        }
+    }
 }
 
 private struct SecurityCommandReader {
     let executable: URL
-    let account: String
     let service: String
     let timeout: TimeInterval
 
-    func readSecret() throws -> String? {
+    func readFirstSecret(accounts: [String]) throws -> String? {
+        for account in accounts {
+            if let secret = try readSecret(account: account) {
+                return secret
+            }
+        }
+        return nil
+    }
+
+    private func readSecret(account: String) throws -> String? {
         let process = Process()
         process.executableURL = executable
         process.arguments = [
